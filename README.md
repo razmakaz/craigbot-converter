@@ -2,7 +2,7 @@
 
 ## Description
 
-Craig Converter is a web application that allows users to upload ZIP files containing FLAC audio files. The application processes these files, converts them to MP3 format, and provides a download link for the processed files. It also supports real-time progress updates via WebSockets.
+Craigbot Converter is a web application that allows users to upload ZIP files containing FLAC audio files. The application processes these files, converts them to MP3 format, and provides a download link for the processed files. It also supports real-time progress updates via WebSockets.
 
 ## Requirements
 
