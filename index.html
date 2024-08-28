@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Upload ZIP File</title>
+  </head>
+  <body>
+    <h1>Upload ZIP File</h1>
+    <form
+      id="uploadForm"
+      action="/upload"
+      method="post"
+      enctype="multipart/form-data"
+    >
+      <label for="zipfile">Choose ZIP file:</label>
+      <input
+        type="file"
+        id="zipfile"
+        name="zipfile"
+        accept=".zip"
+        required
+      /><br /><br />
+      <label for="baseOutputFileName">Base Output File Name:</label>
+      <input
+        type="text"
+        id="baseOutputFileName"
+        name="baseOutputFileName"
+      /><br /><br />
+      <button type="submit">Upload</button>
+    </form>
+    <div id="progress"></div>
+    <div id="status"></div>
+    <div id="download"></div>
+
+    <script>
+      const form = document.getElementById("uploadForm");
+      const progressDiv = document.getElementById("progress");
+      const statusDiv = document.getElementById("status");
+      const downloadDiv = document.getElementById("download");
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        const formData = new FormData(form);
+
+        const response = await fetch("/upload", {
+          method: "POST",
+          body: formData,
+        });
+
+        const result = await response.json();
+        const fileId = result.fileId;
+
+        statusDiv.innerHTML = "File received. Processing...";
+
+        const ws = new WebSocket(`ws://${window.location.host}`);
+        ws.onmessage = (event) => {
+          const data = JSON.parse(event.data);
+          progressDiv.innerHTML = `Progress: ${data.progress}`;
+        };
+
+        const statusInterval = setInterval(async () => {
+          const statusResponse = await fetch(`/status/${fileId}`);
+          const statusResult = await statusResponse.json();
+          statusDiv.innerHTML = `Status: ${statusResult.status}`;
+
+          if (
+            statusResult.status === "completed" ||
+            statusResult.status === "split"
+          ) {
+            clearInterval(statusInterval);
+            downloadDiv.innerHTML = `<a href="/download/${fileId}">Download Processed File</a>`;
+          }
+        }, 2000);
+      });
+    </script>
+  </body>
+</html>
